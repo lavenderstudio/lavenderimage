@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# 1. Cài đặt thư viện đồ họa (GD, ImageMagick)
+# 1. Cài đặt thư viện
 RUN apt-get update && apt-get install -y \
     nginx libpng-dev libjpeg-dev libfreetype6-dev libzip-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -23,25 +23,22 @@ RUN echo 'server { \
 WORKDIR /var/www/html
 COPY . .
 
-# 3. Tạo thư mục tạm để lưu code gốc (Tránh bị rm -rf làm mất dữ liệu)
-RUN mkdir -p /orig/themes /orig/plugins /orig/local /orig/upload
-
-# 4. CHỐT CHẶN: Di chuyển dữ liệu mặc định vào vùng an toàn trước khi xóa thư mục chính
-RUN cp -rn themes/* /orig/themes/ && \
+# 3. Lưu trữ code gốc
+RUN mkdir -p /orig/themes /orig/plugins /orig/local /orig/upload && \
+    cp -rn themes/* /orig/themes/ && \
     cp -rn plugins/* /orig/plugins/ && \
     mkdir -p persistent_data
 
-# 5. CMD: Cơ chế tự động khôi phục dữ liệu nếu Volume trống
+# 4. CMD: Khởi chạy và Bảo vệ
 EXPOSE 80
 CMD php-fpm -D && \
-    mkdir -p /var/www/html/persistent_data/local/config && \
-    # XÓA FILE LỖI NGAY LẬP TỨC
-    rm -f /var/www/html/persistent_data/local/config/config.inc.php && \
-    # TẠO LẠI FILE MỚI CHUẨN 100% (KHÔNG CÓ LỖI CÚ PHÁP)
+    mkdir -p /var/www/html/persistent_data/themes /var/www/html/persistent_data/plugins /var/www/html/persistent_data/local/config /var/www/html/persistent_data/upload /var/www/html/persistent_data/_data && \
+    [ "$(ls -A /var/www/html/persistent_data/themes)" ] || cp -rn /orig/themes/* /var/www/html/persistent_data/themes/ && \
+    [ "$(ls -A /var/www/html/persistent_data/plugins)" ] || cp -rn /orig/plugins/* /var/www/html/persistent_data/plugins/ && \
+    # CHỐT CHẶN: Ghi đè file cấu hình CHUẨN mỗi khi khởi động (Fix lỗi Parse Error vĩnh viễn)
     echo "<?php \n\$conf['ext_imagick_dir'] = '/usr/bin/'; \n\$conf['graphics_library'] = 'ext_imagick'; \n?>" > /var/www/html/persistent_data/local/config/config.inc.php && \
-    # KẾT NỐI DATABASE (GIỮ NGUYÊN THÔNG TIN CŨ)
     echo "<?php \n\$conf['db_host'] = 'mysql.railway.internal:3306'; \n\$conf['db_user'] = 'root'; \n\$conf['db_password'] = 'yEaKItfAreoFBaWShRQAhOvZaBZiqgvW'; \n\$conf['db_base'] = 'railway'; \n\$conf['db_prefix'] = 'piwigo_'; \n\$conf['dblayer'] = 'mysqli'; \n\$prefixeTable = 'piwigo_'; \ndefine('PHPWG_INSTALLED', true); \n?>" > /var/www/html/persistent_data/local/config/database.inc.php && \
-    # THIẾT LẬP LẠI HỆ THỐNG
+    # Thiết lập Symlink
     rm -rf themes plugins local upload _data && \
     ln -s /var/www/html/persistent_data/themes /var/www/html/themes && \
     ln -s /var/www/html/persistent_data/plugins /var/www/html/plugins && \
