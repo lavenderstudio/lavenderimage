@@ -113,7 +113,6 @@ if (script_basename() == 'picture')
   }
 }
 
-
 $page = array_merge( $page, parse_section_url( $tokens, $next_token) );
 
 if ( !isset($page['section']) )
@@ -124,7 +123,17 @@ if ( !isset($page['section']) )
     $page['section'] = 'categories';
     $page['is_homepage'] = true;
 
-    // --- BƯỚC QUAN TRỌNG: Tự tay lấy ảnh "Most Visited" nạp vào trang chủ ---
+    // Định nghĩa biến forbidden sớm để tránh lỗi Warning
+    $forbidden = get_sql_condition_FandF(
+      array(
+        'forbidden_categories' => 'category_id',
+        'visible_categories' => 'category_id',
+        'visible_images' => 'id'
+      ),
+      'AND'
+    );
+
+    // Truy vấn lấy ảnh "Most Visited"
     $query = '
 SELECT DISTINCT(id)
   FROM '.IMAGES_TABLE.'
@@ -135,7 +144,9 @@ SELECT DISTINCT(id)
   LIMIT '.$conf['top_number'].'
 ;';
     $page['items'] = query2array($query, null, 'id');
-    // ---------------------------------------------------------------------
+
+    // Thêm tiêu đề cho phần ảnh Masonry
+    $page['title'] = l10n('Most visited'); 
   }
   else
   {
