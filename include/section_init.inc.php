@@ -121,12 +121,21 @@ if ( !isset($page['section']) )
   // Lavender Prime Custom: Chế độ Hybrid - Hiện cả Album và Ảnh Masonry
   if (!isset($_GET['/']) && empty($_GET) && !isset($page['section']))
   {
-    $page['section'] = 'categories'; // Giữ lại để hiện danh sách Album
+    $page['section'] = 'categories';
     $page['is_homepage'] = true;
-    
-    // Ép hệ thống lấy thêm danh sách ảnh "Most Visited" để GDThumb hiển thị bên dưới Album
-    $_GET['/'] = 'most_visited'; 
-    $page['items'] = array(); // Sẽ được đổ đầy ở bước xử lý phía sau
+
+    // --- BƯỚC QUAN TRỌNG: Tự tay lấy ảnh "Most Visited" nạp vào trang chủ ---
+    $query = '
+SELECT DISTINCT(id)
+  FROM '.IMAGES_TABLE.'
+    INNER JOIN '.IMAGE_CATEGORY_TABLE.' AS ic ON id = ic.image_id
+  WHERE hit > 0
+    '.$forbidden.'
+  ORDER BY hit DESC, id DESC
+  LIMIT '.$conf['top_number'].'
+;';
+    $page['items'] = query2array($query, null, 'id');
+    // ---------------------------------------------------------------------
   }
   else
   {
