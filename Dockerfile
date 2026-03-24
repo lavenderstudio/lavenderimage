@@ -1,28 +1,21 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
-# 1. Cài đặt các thư viện đồ họa
+# 1. Cài đặt các thư viện đồ họa cần thiết
 RUN apt-get update && apt-get install -y \
     libpng-dev libjpeg-dev libfreetype6-dev libzip-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install mysqli gd zip exif
 
-# 2. DIỆT TẬN GỐC LỖI MPM: Xóa sạch thư mục cấu hình mpm để Apache không thể nạp sai
-RUN rm -f /etc/apache2/mods-enabled/mpm_* \
-    && echo "LoadModule mpm_prefork_module /usr/lib/apache2/modules/mod_mpm_prefork.so" > /etc/apache2/mods-enabled/mpm_prefork.load \
-    && a2enmod rewrite
-
-# 3. Thiết lập thư mục làm việc
+# 2. Thiết lập thư mục làm việc
 WORKDIR /var/www/html
 COPY . .
 
-# 4. Cấu trúc Symlink để lưu dữ liệu vĩnh viễn (Chống cài lại)
+# 3. Cấu trúc Symlink "Bất tử" (Lưu vào Volume để không mất dữ liệu)
 RUN mkdir -p persistent_data/upload persistent_data/local \
     && rm -rf upload local \
-    && ln -s persistent_data/upload upload \
-    && ln -s persistent_data/local local \
+    && ln -s /var/www/html/persistent_data/upload /var/www/html/upload \
+    && ln -s /var/www/html/persistent_data/local /var/www/html/local \
     && chown -R www-data:www-data /var/www/html
 
-# 5. Ép chạy cổng 80 (Chỉnh Port trên Railway thành 80)
-EXPOSE 80
-
-CMD ["apache2-foreground"]
+# 4. Chạy server trực tiếp trên Port của Railway cấp
+CMD ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]
