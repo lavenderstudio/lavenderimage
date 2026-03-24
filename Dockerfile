@@ -1,12 +1,12 @@
 FROM php:8.2-fpm
 
-# 1. Cài đặt Nginx, thư viện ảnh và ImageMagick (convert)
+# 1. Cài đặt Nginx, ImageMagick và các thư viện đồ họa
 RUN apt-get update && apt-get install -y \
-    nginx libpng-dev libjpeg-dev libfreetype6-dev libzip-dev imagemagick \
+    nginx imagemagick libpng-dev libjpeg-dev libfreetype6-dev libzip-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install mysqli gd zip exif
 
-# 2. Cấu hình Nginx
+# 2. Cấu hình Nginx (Tăng giới hạn upload lên 100MB cho ảnh chất lượng cao)
 RUN echo 'server { \
     listen 80; \
     root /var/www/html; \
@@ -23,14 +23,15 @@ RUN echo 'server { \
 WORKDIR /var/www/html
 COPY . .
 
-# 3. Tạo cấu trúc Symlink (Thêm thư mục _data để tránh lỗi buffer)
+# 3. THIẾT LẬP VOLUME CHO CẢ ẢNH GỐC VÀ ẢNH ĐỆM (_data)
+# _data là nơi Piwigo tạo buffer/thumbnail. Nếu không đưa vào Volume, nó sẽ lỗi liên tục.
 RUN mkdir -p persistent_data/upload persistent_data/local/config persistent_data/_data \
     && rm -rf upload local _data \
     && ln -s /var/www/html/persistent_data/upload /var/www/html/upload \
     && ln -s /var/www/html/persistent_data/local /var/www/html/local \
     && ln -s /var/www/html/persistent_data/_data /var/www/html/_data
 
-# 4. Lệnh khởi chạy (Ghi đè cấu hình và ÉP QUYỀN GHI)
+# 4. LỆNH KHỞI CHẠY (Giữ nguyên cấu hình DB cũ của bạn)
 EXPOSE 80
 CMD php-fpm -D && \
     mkdir -p /var/www/html/persistent_data/local/config && \
