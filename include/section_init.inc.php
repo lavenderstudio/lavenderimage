@@ -118,7 +118,16 @@ $page = array_merge( $page, parse_section_url( $tokens, $next_token) );
 
 if ( !isset($page['section']) )
 {
-  $page['section'] = 'categories';
+  // Lavender Prime Custom: Ép trang chủ mặc định vào trang Xem nhiều nhất
+  if (!isset($_GET['/']) && empty($_GET) && !isset($page['section']))
+  {
+    $_GET['/'] = 'most_visited';
+    $page['section'] = 'most_visited';
+  }
+  else
+  {
+    $page['section'] = 'categories';
+  }
 
   switch (script_basename())
   {
