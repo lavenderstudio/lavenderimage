@@ -33,7 +33,7 @@ RUN mkdir -p persistent_data/upload persistent_data/local/config \
 EXPOSE 80
 CMD php-fpm -D && \
     mkdir -p /var/www/html/persistent_data/local/config && \
-    echo "<?php \n\$conf['db_host'] = 'mysql.railway.internal:3306'; \n\$conf['db_user'] = 'root'; \n\$conf['db_password'] = 'yEaKItfAreoFBaWShRQAhOvZaBZiqgvW'; \n\$conf['db_base'] = 'railway'; \n\$conf['db_prefix'] = 'piwigo_'; \n\$conf['dblayer'] = 'mysqli'; \n?>" > /var/www/html/persistent_data/local/config/database.inc.php && \
+    echo "<?php \n\$conf['db_host'] = 'mysql.railway.internal:3306'; \n\$conf['db_user'] = 'root'; \n\$conf['db_password'] = 'yEaKItfAreoFBaWShRQAhOvZaBZiqgvW'; \n\$conf['db_base'] = 'railway'; \n\$prefixeTable = 'piwigo_'; \n\$conf['db_prefix'] = 'piwigo_'; \n\$conf['dblayer'] = 'mysqli'; \ndefine('PHPWG_INSTALLED', true); \n?>" > /var/www/html/persistent_data/local/config/database.inc.php && \
     chown -R www-data:www-data /var/www/html && \
     chmod -R 777 /var/www/html/persistent_data && \
     nginx -g "daemon off;"
