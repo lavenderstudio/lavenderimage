@@ -1,6 +1,6 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
-# Cài đặt các thư viện hệ thống cần thiết
+# Cài đặt các thư viện hệ thống và extension PHP cần thiết
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -8,16 +8,14 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) mysqli gd zip
+    && docker-php-ext-install mysqli gd zip
 
-# Kích hoạt mod_rewrite cho Apache (Piwigo cần cái này)
-RUN a2enmod rewrite
+# Sao chép mã nguồn
+COPY . /app
+WORKDIR /app
 
-# Sao chép mã nguồn vào thư mục web
-COPY . /var/www/html/
+# Cấp quyền cho các thư mục quan trọng
+RUN chmod -R 777 upload _data local
 
-# Cấp quyền cho thư mục (để Piwigo có thể ghi file)
-RUN chown -R www-data:www-data /var/www/html
-
-# Mở cổng 80
-EXPOSE 80
+# Chạy server PHP tích hợp trên cổng mà Railway cung cấp
+CMD php -S 0.0.0.0:$PORT
