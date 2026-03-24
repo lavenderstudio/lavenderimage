@@ -118,11 +118,15 @@ $page = array_merge( $page, parse_section_url( $tokens, $next_token) );
 
 if ( !isset($page['section']) )
 {
-  // Lavender Prime Custom: Ép trang chủ mặc định vào trang Xem nhiều nhất
+  // Lavender Prime Custom: Chế độ Hybrid - Hiện cả Album và Ảnh Masonry
   if (!isset($_GET['/']) && empty($_GET) && !isset($page['section']))
   {
-    $_GET['/'] = 'most_visited';
-    $page['section'] = 'most_visited';
+    $page['section'] = 'categories'; // Giữ lại để hiện danh sách Album
+    $page['is_homepage'] = true;
+    
+    // Ép hệ thống lấy thêm danh sách ảnh "Most Visited" để GDThumb hiển thị bên dưới Album
+    $_GET['/'] = 'most_visited'; 
+    $page['items'] = array(); // Sẽ được đổ đầy ở bước xử lý phía sau
   }
   else
   {
