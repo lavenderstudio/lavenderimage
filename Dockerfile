@@ -23,26 +23,17 @@ RUN echo 'server { \
 WORKDIR /var/www/html
 COPY . .
 
-# 3. THIẾT LẬP VOLUME TRƯỚC
+# 3. Tạo cấu trúc Symlink
 RUN mkdir -p persistent_data/upload persistent_data/local/config \
     && rm -rf upload local \
     && ln -s /var/www/html/persistent_data/upload /var/www/html/upload \
     && ln -s /var/www/html/persistent_data/local /var/www/html/local
 
-# 4. GHI FILE CẤU HÌNH VÀO ĐÚNG VỊ TRÍ TRONG VOLUME
-# Lưu ý: Ghi trực tiếp vào persistent_data/local/config/
-RUN echo '<?php \
-$conf["db_host"] = "mysql.railway.internal:3306"; \
-$conf["db_user"] = "root"; \
-$conf["db_password"] = "yEaKItfAreoFBaWShRQAhOvZaBZiqgvW"; \
-$conf["db_base"] = "railway"; \
-$conf["db_prefix"] = "piwigo_"; \
-define("PHPWG_INSTALLED", true); \
-?>' > persistent_data/local/config/database.inc.php
-
-# 5. PHÂN QUYỀN VÀ KHỞI CHẠY
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 777 /var/www/html/persistent_data
-
+# 4. LỆNH KHỞI CHẠY ĐẶC BIỆT: Ghi file cấu hình SAU KHI Volume đã gắn
 EXPOSE 80
-CMD php-fpm -D && nginx -g "daemon off;"
+CMD php-fpm -D && \
+    mkdir -p /var/www/html/persistent_data/local/config && \
+    echo "<?php \n\$conf['db_host'] = 'mysql.railway.internal:3306'; \n\$conf['db_user'] = 'root'; \n\$conf['db_password'] = 'yEaKItfAreoFBaWShRQAhOvZaBZiqgvW'; \n\$conf['db_base'] = 'railway'; \n\$conf['db_prefix'] = 'piwigo_'; \ndefine('PHPWG_INSTALLED', true); \n?>" > /var/www/html/persistent_data/local/config/database.inc.php && \
+    chown -R www-data:www-data /var/www/html && \
+    chmod -R 777 /var/www/html/persistent_data && \
+    nginx -g "daemon off;"
