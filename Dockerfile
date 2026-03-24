@@ -23,14 +23,18 @@ RUN echo 'server { \
 WORKDIR /var/www/html
 COPY . .
 
-# 3. Tạo cấu trúc Symlink vĩnh viễn
-RUN mkdir -p persistent_data/upload persistent_data/local/config persistent_data/_data \
-    && rm -rf upload local _data \
+# 3. Tạo cấu trúc Symlink TOÀN DIỆN (Thêm themes và plugins)
+RUN mkdir -p persistent_data/upload persistent_data/local/config persistent_data/_data persistent_data/plugins persistent_data/themes \
+    && cp -r plugins/* persistent_data/plugins/ || true \
+    && cp -r themes/* persistent_data/themes/ || true \
+    && rm -rf upload local _data plugins themes \
     && ln -s /var/www/html/persistent_data/upload /var/www/html/upload \
     && ln -s /var/www/html/persistent_data/local /var/www/html/local \
-    && ln -s /var/www/html/persistent_data/_data /var/www/html/_data
+    && ln -s /var/www/html/persistent_data/_data /var/www/html/_data \
+    && ln -s /var/www/html/persistent_data/plugins /var/www/html/plugins \
+    && ln -s /var/www/html/persistent_data/themes /var/www/html/themes
 
-# 4. CMD: Nạp biến đầy đủ để triệt tiêu toàn bộ Warning
+# 4. CMD: Duy trì cấu hình và phân quyền
 EXPOSE 80
 CMD php-fpm -D && \
     mkdir -p /var/www/html/persistent_data/local/config && \
