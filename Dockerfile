@@ -23,24 +23,18 @@ RUN echo 'server { \
 WORKDIR /var/www/html
 COPY . .
 
-# 3. CHUẨN BỊ CẤU TRÚC (Không xóa ngay để tí nữa copy dữ liệu gốc)
-RUN mkdir -p persistent_data/upload persistent_data/local persistent_data/_data persistent_data/plugins persistent_data/themes
+# 3. Tạo cấu trúc Symlink vĩnh viễn
+RUN mkdir -p persistent_data/upload persistent_data/local/config persistent_data/_data \
+    && rm -rf upload local _data \
+    && ln -s /var/www/html/persistent_data/upload /var/www/html/upload \
+    && ln -s /var/www/html/persistent_data/local /var/www/html/local \
+    && ln -s /var/www/html/persistent_data/themes /var/www/html/themes \
+    && ln -s /var/www/html/persistent_data/plugins /var/www/html/plugins \
+    && ln -s /var/www/html/persistent_data/_data /var/www/html/_data
 
-# 4. SIÊU BIẾN PHÁP CMD: Xử lý thông minh khi khởi chạy
+# 4. CMD: Nạp biến đầy đủ để triệt tiêu toàn bộ Warning
 EXPOSE 80
 CMD php-fpm -D && \
-    # Bước A: Nếu Volume trống, copy dữ liệu mặc định từ code vào Volume
-    cp -rn plugins/* persistent_data/plugins/ 2>/dev/null || true && \
-    cp -rn themes/* persistent_data/themes/ 2>/dev/null || true && \
-    cp -rn local/* persistent_data/local/ 2>/dev/null || true && \
-    # Bước B: Xóa thư mục tạm trong Container và tạo Symlink tới Volume
-    rm -rf upload local _data plugins themes && \
-    ln -s /var/www/html/persistent_data/upload /var/www/html/upload && \
-    ln -s /var/www/html/persistent_data/local /var/www/html/local && \
-    ln -s /var/www/html/persistent_data/_data /var/www/html/_data && \
-    ln -s /var/www/html/persistent_data/plugins /var/www/html/plugins && \
-    ln -s /var/www/html/persistent_data/themes /var/www/html/themes && \
-    # Bước C: Ghi file cấu hình DB (Luôn đảm bảo kết nối)
     mkdir -p /var/www/html/persistent_data/local/config && \
     echo "<?php \n\
 \$conf['db_host'] = 'mysql.railway.internal:3306'; \n\
@@ -52,7 +46,6 @@ CMD php-fpm -D && \
 \$prefixeTable = 'piwigo_'; \n\
 define('PHPWG_INSTALLED', true); \n\
 ?>" > /var/www/html/persistent_data/local/config/database.inc.php && \
-    # Bước D: Phân quyền và chạy web
     chown -R www-data:www-data /var/www/html && \
     chmod -R 777 /var/www/html/persistent_data && \
     nginx -g "daemon off;"
