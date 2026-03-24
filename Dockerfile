@@ -34,30 +34,20 @@ RUN cp -rn themes/* /orig/themes/ && \
 # 5. CMD: Cơ chế tự động khôi phục dữ liệu nếu Volume trống
 EXPOSE 80
 CMD php-fpm -D && \
-    # Tạo cấu trúc thư mục trong Volume nếu chưa có
-    mkdir -p persistent_data/themes persistent_data/plugins persistent_data/local/config persistent_data/upload persistent_data/_data && \
-    # Nếu Volume trống (lần đầu hoặc redeploy), nạp lại Themes và Plugins mặc định
-    [ "$(ls -A persistent_data/themes)" ] || cp -rn /orig/themes/* persistent_data/themes/ && \
-    [ "$(ls -A persistent_data/plugins)" ] || cp -rn /orig/plugins/* persistent_data/plugins/ && \
-    # Xóa các thư mục tĩnh và Symlink vào Volume
+    mkdir -p /var/www/html/persistent_data/local/config && \
+    # XÓA FILE LỖI NGAY LẬP TỨC
+    rm -f /var/www/html/persistent_data/local/config/config.inc.php && \
+    # TẠO LẠI FILE MỚI CHUẨN 100% (KHÔNG CÓ LỖI CÚ PHÁP)
+    echo "<?php \n\$conf['ext_imagick_dir'] = '/usr/bin/'; \n\$conf['graphics_library'] = 'ext_imagick'; \n?>" > /var/www/html/persistent_data/local/config/config.inc.php && \
+    # KẾT NỐI DATABASE (GIỮ NGUYÊN THÔNG TIN CŨ)
+    echo "<?php \n\$conf['db_host'] = 'mysql.railway.internal:3306'; \n\$conf['db_user'] = 'root'; \n\$conf['db_password'] = 'yEaKItfAreoFBaWShRQAhOvZaBZiqgvW'; \n\$conf['db_base'] = 'railway'; \n\$conf['db_prefix'] = 'piwigo_'; \n\$conf['dblayer'] = 'mysqli'; \n\$prefixeTable = 'piwigo_'; \ndefine('PHPWG_INSTALLED', true); \n?>" > /var/www/html/persistent_data/local/config/database.inc.php && \
+    # THIẾT LẬP LẠI HỆ THỐNG
     rm -rf themes plugins local upload _data && \
     ln -s /var/www/html/persistent_data/themes /var/www/html/themes && \
     ln -s /var/www/html/persistent_data/plugins /var/www/html/plugins && \
     ln -s /var/www/html/persistent_data/local /var/www/html/local && \
     ln -s /var/www/html/persistent_data/upload /var/www/html/upload && \
     ln -s /var/www/html/persistent_data/_data /var/www/html/_data && \
-    # Ghi file cấu hình Database
-    echo "<?php \n\
-\$conf['db_host'] = 'mysql.railway.internal:3306'; \n\
-\$conf['db_user'] = 'root'; \n\
-\$conf['db_password'] = 'yEaKItfAreoFBaWShRQAhOvZaBZiqgvW'; \n\
-\$conf['db_base'] = 'railway'; \n\
-\$conf['db_prefix'] = 'piwigo_'; \n\
-\$conf['dblayer'] = 'mysqli'; \n\
-\$prefixeTable = 'piwigo_'; \n\
-define('PHPWG_INSTALLED', true); \n\
-?>" > /var/www/html/persistent_data/local/config/database.inc.php && \
-    # Phân quyền cuối cùng
     chown -R www-data:www-data /var/www/html /var/www/html/persistent_data && \
     chmod -R 777 /var/www/html/persistent_data && \
     nginx -g "daemon off;"
