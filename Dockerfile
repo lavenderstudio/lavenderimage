@@ -23,16 +23,24 @@ RUN echo 'server { \
 WORKDIR /var/www/html
 COPY . .
 
-# 3. ÉP BUỘC CẤU HÌNH (Sửa lỗi Access Denied)
-# Tạo thư mục, copy file từ GitHub vào Volume, sau đó XÓA file cài đặt để không bị quay lại trang đó
-RUN mkdir -p persistent_data/upload persistent_data/local/config \
+# 3. TẠO FILE CẤU HÌNH TRỰC TIẾP (Thay thế thông số của bạn vào đây)
+RUN mkdir -p local/config && echo '<?php \
+$conf["db_host"] = "mysql.railway.internal:3306"; \
+$conf["db_user"] = "root"; \
+$conf["db_password"] = "yEaKItfAreoFBaWShRQAhOvZaBZiqgvW"; \
+$conf["db_base"] = "railway"; \
+$conf["db_prefix"] = "piwigo_"; \
+define("PHPWG_INSTALLED", true); \
+?>' > local/config/database.inc.php
+
+# 4. GẮN VOLUME VÀ PHÂN QUYỀN
+RUN mkdir -p persistent_data/upload persistent_data/local \
     && cp -r local/* persistent_data/local/ || true \
     && rm -rf upload local \
     && ln -s /var/www/html/persistent_data/upload /var/www/html/upload \
     && ln -s /var/www/html/persistent_data/local /var/www/html/local \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 777 /var/www/html/persistent_data \
-    && rm -f install.php 
+    && chmod -R 777 /var/www/html/persistent_data
 
 EXPOSE 80
 CMD php-fpm -D && nginx -g "daemon off;"
