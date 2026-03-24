@@ -1,26 +1,34 @@
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
-# 1. Cài đặt thư viện
-RUN apt-get update && apt-get install -y \
-    libpng-dev libjpeg-dev libfreetype6-dev libzip-dev \
+# 1. Cài đặt Nginx và các thư viện đồ họa
+RUN apt-get update && apt-get install -y nginx libpng-dev libjpeg-dev libfreetype6-dev libzip-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install mysqli gd zip exif
 
-# 2. Sửa lỗi MPM (Dùng phương pháp triệt để nhất)
-RUN a2dismod mpm_event || true && a2enmod mpm_prefork rewrite
+# 2. Tạo cấu hình Nginx tối giản để chạy Piwigo
+RUN echo 'server { \
+    listen 80; \
+    root /var/www/html; \
+    index index.php index.html; \
+    location / { try_files $uri $uri/ /index.php?$args; } \
+    location ~ \.php$ { \
+        include fastcgi_params; \
+        fastcgi_pass 127.0.0.1:9000; \
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \
+    } \
+}' > /etc/nginx/sites-available/default
 
+# 3. Thiết lập thư mục và Volume (Symlink để giữ dữ liệu vĩnh viễn)
 WORKDIR /var/www/html
 COPY . .
 
-# 3. Cấu trúc Volume và CẤP QUYỀN (Quan trọng nhất)
-# Lệnh này đảm bảo thư mục persistent_data luôn thuộc về user www-data
 RUN mkdir -p persistent_data/upload persistent_data/local \
     && rm -rf upload local \
     && ln -s /var/www/html/persistent_data/upload /var/www/html/upload \
     && ln -s /var/www/html/persistent_data/local /var/www/html/local \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/persistent_data
+    && chmod -R 777 /var/www/html/persistent_data
 
-# 4. Chạy cổng 80 (Nhớ chỉnh Networking trên Railway thành 80)
+# 4. Lệnh khởi chạy cả PHP-FPM và Nginx
 EXPOSE 80
-CMD ["apache2-foreground"]
+CMD php-fpm -D && nginx -g "daemon off;"
