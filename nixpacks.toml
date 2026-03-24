@@ -1,0 +1,15 @@
+[phases.setup]
+nixpacksArchive = "latest"
+aptPkgs = ["php-mysqli", "php-gd", "php-mbstring", "php-xml", "php-curl", "php-mysql", "mysql-client"]
+
+[phases.install]
+# Lệnh này cực kỳ quan trọng để kích hoạt extension trong môi trường chạy
+cmds = ["apt-get update && apt-get install -y php8.2-mysqli php8.2-gd php8.2-mbstring php8.2-xml", "echo 'extension=mysqli.so' >> /etc/php/8.2/cli/php.ini"]
+
+[variables]
+# Ép Railway sử dụng PHP 8.2 để tránh các lỗi Deprecated của bản 8.4
+NIXPACKS_PHP_FALLBACK_VERSION = "8.2"
+PHP_EXTENSIONS = "mysqli,gd,mbstring,xml,curl"
+
+[start]
+cmd = "apache2-foreground"

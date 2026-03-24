@@ -1,6 +1,0 @@
-[phases.setup]
-nixpacksArchive = "latest"
-aptPkgs = ["php-mysqli", "php-gd", "php-mbstring", "php-xml", "php-curl"]
-
-[phases.build]
-cmds = ["echo 'Nixpacks build complete'"]
