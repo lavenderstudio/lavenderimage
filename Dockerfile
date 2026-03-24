@@ -10,12 +10,15 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install mysqli gd zip
 
-# Sao chép mã nguồn
-COPY . /app
+# Thiết lập thư mục làm việc
 WORKDIR /app
 
-# Cấp quyền cho các thư mục quan trọng
-RUN chmod -R 777 upload _data local
+# Sao chép toàn bộ mã nguồn vào container
+COPY . /app
 
-# Chạy server PHP tích hợp trên cổng mà Railway cung cấp
+# Tạo các thư mục cần thiết (nếu chưa có) và cấp quyền truy cập
+RUN mkdir -p upload _data local \
+    && chmod -R 777 upload _data local
+
+# Chạy server PHP tích hợp trên cổng của Railway
 CMD php -S 0.0.0.0:$PORT
