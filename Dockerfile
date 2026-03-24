@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install mysqli gd zip exif
 
-# 2. Cấu hình Nginx chuẩn (Port 80)
+# 2. Cấu hình Nginx
 RUN echo 'server { \
     listen 80; \
     root /var/www/html; \
@@ -23,14 +23,16 @@ RUN echo 'server { \
 WORKDIR /var/www/html
 COPY . .
 
-# 3. ÉP QUYỀN GHI VÀO VOLUME (Sửa lỗi fputs)
+# 3. ÉP BUỘC CẤU HÌNH (Sửa lỗi Access Denied)
+# Tạo thư mục, copy file từ GitHub vào Volume, sau đó XÓA file cài đặt để không bị quay lại trang đó
 RUN mkdir -p persistent_data/upload persistent_data/local/config \
     && cp -r local/* persistent_data/local/ || true \
     && rm -rf upload local \
     && ln -s /var/www/html/persistent_data/upload /var/www/html/upload \
     && ln -s /var/www/html/persistent_data/local /var/www/html/local \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 777 /var/www/html/persistent_data
+    && chmod -R 777 /var/www/html/persistent_data \
+    && rm -f install.php 
 
 EXPOSE 80
 CMD php-fpm -D && nginx -g "daemon off;"
