@@ -20,5 +20,5 @@ COPY . /app
 RUN mkdir -p upload _data local \
     && chmod -R 777 upload _data local
 
-# Chạy server PHP tích hợp trên cổng của Railway
-CMD php -S 0.0.0.0:$PORT
+# Chạy server PHP tích hợp
+CMD php -S 0.0.0.0:8080
