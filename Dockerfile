@@ -1,26 +1,29 @@
 FROM php:8.2-apache
 
-# Cài đặt thư viện đồ họa và nén
+# 1. Cài đặt các thư viện cần thiết
 RUN apt-get update && apt-get install -y \
     libpng-dev libjpeg-dev libfreetype6-dev libzip-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install mysqli gd zip exif
 
-# FIX LỖI MPM: Vô hiệu hóa mpm_event (thường gây xung đột) và bật mpm_prefork
-RUN a2dismod mpm_event || true && a2enmod mpm_prefork rewrite
+# 2. XÓA BỎ XUNG ĐỘT MPM: Xóa sạch các file config mpm cũ và chỉ bật duy nhất mpm_prefork
+RUN rm -f /etc/apache2/mods-enabled/mpm_* \
+    && a2enmod mpm_prefork rewrite
 
-# Thiết lập thư mục làm việc
+# 3. Thiết lập thư mục làm việc
 WORKDIR /var/www/html
 COPY . .
 
-# Tạo cấu trúc lưu trữ vĩnh viễn (Chống mất dữ liệu và cài lại)
+# 4. Cấu trúc Symlink để lưu dữ liệu vĩnh viễn vào Volume
 RUN mkdir -p persistent_data/upload persistent_data/local \
+    && [ -d upload ] && mv upload/* persistent_data/upload/ || true \
+    && [ -d local ] && mv local/* persistent_data/local/ || true \
     && rm -rf upload local \
     && ln -s persistent_data/upload upload \
     && ln -s persistent_data/local local \
     && chown -R www-data:www-data /var/www/html
 
-# Port 80 là chuẩn của Apache
+# 5. Ép Apache chạy trên cổng 80 (nhớ chỉnh Port trên Railway thành 80)
 EXPOSE 80
 
 CMD ["apache2-foreground"]
