@@ -1004,45 +1004,4 @@ span.related-tags .tag-counter{
   }
 }
 
-/* --- PHIÊN BẢN ÉP HIỂN THỊ CHO BOOTSTRAP DARKROOM --- */
-html body #copyright {
-    display: block !important;
-    visibility: visible !important;
-    width: 100vw !important;
-    position: relative !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    background-color: #ffffff !important; 
-    border-top: 1px solid #eee !important;
-    padding: 100px 0 !important;
-    margin: 0 !important;
-    z-index: 999 !important;
-}
 
-/* Hiển thị hàng liên kết giả lập */
-html body #copyright::before {
-    content: "COLLECTIONS   •   LATEST   •   POPULAR   •   ABOUT" !important;
-    display: block !important;
-    font-size: 11px !important;
-    letter-spacing: 4px !important;
-    color: #888 !important;
-    margin-bottom: 40px !important;
-}
-
-/* Hiển thị tên thương hiệu */
-html body #copyright::after {
-    content: "LAVENDER PRIME STUDIO" !important;
-    display: block !important;
-    font-family: serif !important;
-    font-size: 30px !important;
-    letter-spacing: 15px !important;
-    color: #111 !important;
-    text-transform: uppercase !important;
-}
-
-/* Ẩn triệt để các dòng text mặc định của Piwigo */
-#copyright .footer_content, 
-#copyright a, 
-#copyright br {
-    display: none !important;
-}
