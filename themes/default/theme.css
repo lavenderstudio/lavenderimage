@@ -1003,3 +1003,47 @@ span.related-tags .tag-counter{
     flex-direction:column;
   }
 }
+
+/* --- LÀM TRÀN VIỀN FOOTER --- */
+#copyright {
+    width: 100vw !important; /* Tràn hết chiều rộng trình duyệt */
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw !important;
+    margin-right: -50vw !important;
+    
+    background: #ffffff !important;
+    border-top: 1px solid #f2f2f2;
+    padding: 120px 0 !important;
+    text-align: center;
+}
+
+/* Hàng liên kết điều hướng - Tối giản & Sang trọng */
+#copyright::before {
+    content: "COLLECTIONS   •   LATEST   •   POPULAR   •   ABOUT";
+    display: block;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: #888;
+    margin-bottom: 60px;
+    word-spacing: 25px;
+}
+
+/* Tên Thương Hiệu - Điểm nhấn trung tâm */
+#copyright::after {
+    content: "LAVENDER PRIME STUDIO";
+    display: block;
+    font-family: serif;
+    font-size: clamp(24px, 5vw, 40px); /* Tự động co giãn theo màn hình */
+    letter-spacing: 18px;
+    color: #111;
+    font-weight: 200;
+    margin-top: 20px;
+    opacity: 0.9;
+}
+
+/* Ẩn các thành phần rác để giữ sự sạch sẽ */
+#copyright a {
+    display: none !important; /* Chỉ hiện nội dung Curated của bạn */
+}
