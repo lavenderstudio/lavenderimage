@@ -442,48 +442,57 @@ pwg_log();
 include(PHPWG_ROOT_PATH.'include/page_tail.php');
 ?>
 
-/* --- LAVENDER PRIME: AUTO-INJECTION FOOTER --- */
+/* --- LAVENDER PRIME: GLOBAL AUTO-INJECTION --- */
 echo '
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // 1. Kiểm tra nếu đã có footer thì không chèn nữa (tránh lặp)
     if (document.getElementById("lavender-prime-footer")) return;
 
-    // 2. Nội dung Footer phong cách Bảo tàng
     var footerHTML = `
     <style>
-        #copyright, .footer, footer, #footer { display: none !important; }
+        /* Ẩn footer mặc định của Piwigo */
+        #copyright, .footer, footer, #footer, .footer_content { 
+            display: none !important; 
+            visibility: hidden !important; 
+            height: 0 !important; 
+        }
+
+        /* Thiết kế Lavender Prime Bảo tàng */
         #lavender-prime-footer {
             width: 100vw !important;
             position: relative !important;
             left: 50% !important;
             transform: translateX(-50%) !important;
             background: #ffffff !important;
-            border-top: 1px solid #eeeeee !important;
+            border-top: 1px solid #f2f2f2 !important;
             padding: 100px 0 !important;
             text-align: center !important;
             z-index: 9999 !important;
             display: block !important;
             clear: both !important;
             margin-top: 80px !important;
+            box-sizing: border-box !important;
         }
-        .lavender-links { margin-bottom: 40px; }
+        .lavender-links { margin-bottom: 40px !important; }
         .lavender-links a { 
             color: #999 !important; 
             text-decoration: none !important; 
             margin: 0 18px !important; 
             font-size: 11px !important; 
             letter-spacing: 3px !important; 
-            font-family: sans-serif !important;
+            font-family: "Helvetica", sans-serif !important;
+            transition: 0.3s !important;
         }
+        .lavender-links a:hover { color: #000 !important; }
         .lavender-title { 
             font-family: serif !important; 
-            font-size: 32px !important; 
-            letter-spacing: 16px !important; 
+            font-size: 35px !important; 
+            letter-spacing: 15px !important; 
             color: #111 !important; 
             text-transform: uppercase !important; 
             font-weight: 200 !important;
             margin: 20px 0 !important;
+            border: none !important;
         }
         .lavender-subtitle { 
             font-size: 10px !important; 
@@ -504,9 +513,8 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="lavender-subtitle">EST. 2026 | FINE ART DIGITAL GALLERY</div>
     </footer>`;
 
-    // 3. Tiêm vào cuối thẻ body
     document.body.insertAdjacentHTML("beforeend", footerHTML);
 });
 </script>
 ';
-/* --- KẾT THÚC TIÊM MÃ --- */
+/* --- KẾT THÚC LAVENDER PRIME --- */
