@@ -2,7 +2,7 @@
 // +-----------------------------------------------------------------------+
 // | This file is part of Piwigo.                                          |
 // |                                                                       |
-// | For copyright and license information, please view the COPYING.txt    |
+// | For copyright and license information, please view the COPYING.txt     |
 // | file that was distributed with this source code.                      |
 // +-----------------------------------------------------------------------+
 $template->set_filenames(array('tail'=>'footer.tpl'));
@@ -16,7 +16,6 @@ $template->assign(
     ));
 
 //--------------------------------------------------------------------- contact
-
 if (!is_a_guest())
 {
   $template->assign(
@@ -95,17 +94,10 @@ if ( !empty($conf['mobile_theme']) && (get_device() != 'desktop' || mobile_theme
 }
 
 trigger_notify('loc_end_page_tail');
-//
-// Generate the page
-//
 $template->parse('tail');
 $template->p();
-?>
 
-<?php
-/* --- GIỮ NGUYÊN NỘI DUNG GỐC CỦA FILE Ở ĐÂY (NẾU CÓ) --- */
-
-// --- ĐOẠN MÃ LAVENDER PRIME: CHÈN VÀO TRƯỚC KHI KẾT THÚC ---
+// --- ĐOẠN MÃ LAVENDER PRIME: TRIỆT TIÊU DÒNG CHỮ CŨ ---
 echo '
 <script>
 (function() {
@@ -126,14 +118,13 @@ echo '
         }
     }
     cleanLavender();
-    setTimeout(cleanLavender, 1000);
-    window.onload = cleanLavender;
+    setTimeout(cleanLavender, 1000); // Chạy lại sau 1s để diệt tận gốc
 })();
 </script>
 <style>
-    /* Chặn CSS ngay lập tức để không bị giật hình */
+    /* Ẩn ngay lập tức bằng CSS */
     .pageregenerated, #copyright, #debug, .footer { display: none !important; opacity: 0 !important; }
 </style>
 ';
-/* --- KẾT THÚC LAVENDER PRIME --- */
+// --- KẾT THÚC ---
 ?>
