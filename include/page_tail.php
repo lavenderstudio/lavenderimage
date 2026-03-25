@@ -2,7 +2,7 @@
 // +-----------------------------------------------------------------------+
 // | This file is part of Piwigo.                                          |
 // |                                                                       |
-// | For copyright and license information, please view the COPYING.txt     |
+// | For copyright and license information, please view the COPYING.txt    |
 // | file that was distributed with this source code.                      |
 // +-----------------------------------------------------------------------+
 $template->set_filenames(array('tail'=>'footer.tpl'));
@@ -16,6 +16,7 @@ $template->assign(
     ));
 
 //--------------------------------------------------------------------- contact
+
 if (!is_a_guest())
 {
   $template->assign(
@@ -94,37 +95,9 @@ if ( !empty($conf['mobile_theme']) && (get_device() != 'desktop' || mobile_theme
 }
 
 trigger_notify('loc_end_page_tail');
+//
+// Generate the page
+//
 $template->parse('tail');
 $template->p();
-
-// --- ĐOẠN MÃ LAVENDER PRIME: TRIỆT TIÊU DÒNG CHỮ CŨ ---
-echo '
-<script>
-(function() {
-    function cleanLavender() {
-        const targets = [".pageregenerated", "#copyright", "#debug", ".footer", "footer", ".text-center.padding-bottom"];
-        targets.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => { el.remove(); });
-        });
-
-        const allDivs = document.getElementsByTagName("div");
-        for (let div of allDivs) {
-            if (div.textContent.includes("Page generated in") || 
-                div.textContent.includes("Sản phẩm của Piwigo") || 
-                div.textContent.includes("17.0.0beta1")) {
-                div.style.display = "none";
-                div.innerHTML = "";
-            }
-        }
-    }
-    cleanLavender();
-    setTimeout(cleanLavender, 1000); // Chạy lại sau 1s để diệt tận gốc
-})();
-</script>
-<style>
-    /* Ẩn ngay lập tức bằng CSS */
-    .pageregenerated, #copyright, #debug, .footer { display: none !important; opacity: 0 !important; }
-</style>
-';
-// --- KẾT THÚC ---
 ?>
