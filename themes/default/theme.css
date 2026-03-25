@@ -1004,46 +1004,45 @@ span.related-tags .tag-counter{
   }
 }
 
-/* --- LÀM TRÀN VIỀN FOOTER --- */
-#copyright {
-    width: 100vw !important; /* Tràn hết chiều rộng trình duyệt */
-    position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw !important;
-    margin-right: -50vw !important;
-    
-    background: #ffffff !important;
-    border-top: 1px solid #f2f2f2;
-    padding: 120px 0 !important;
-    text-align: center;
+/* --- PHIÊN BẢN ÉP HIỂN THỊ CHO BOOTSTRAP DARKROOM --- */
+html body #copyright {
+    display: block !important;
+    visibility: visible !important;
+    width: 100vw !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background-color: #ffffff !important; 
+    border-top: 1px solid #eee !important;
+    padding: 100px 0 !important;
+    margin: 0 !important;
+    z-index: 999 !important;
 }
 
-/* Hàng liên kết điều hướng - Tối giản & Sang trọng */
-#copyright::before {
-    content: "COLLECTIONS   •   LATEST   •   POPULAR   •   ABOUT";
-    display: block;
-    font-size: 11px;
-    letter-spacing: 4px;
-    color: #888;
-    margin-bottom: 60px;
-    word-spacing: 25px;
+/* Hiển thị hàng liên kết giả lập */
+html body #copyright::before {
+    content: "COLLECTIONS   •   LATEST   •   POPULAR   •   ABOUT" !important;
+    display: block !important;
+    font-size: 11px !important;
+    letter-spacing: 4px !important;
+    color: #888 !important;
+    margin-bottom: 40px !important;
 }
 
-/* Tên Thương Hiệu - Điểm nhấn trung tâm */
-#copyright::after {
-    content: "LAVENDER PRIME STUDIO";
-    display: block;
-    font-family: serif;
-    font-size: clamp(24px, 5vw, 40px); /* Tự động co giãn theo màn hình */
-    letter-spacing: 18px;
-    color: #111;
-    font-weight: 200;
-    margin-top: 20px;
-    opacity: 0.9;
+/* Hiển thị tên thương hiệu */
+html body #copyright::after {
+    content: "LAVENDER PRIME STUDIO" !important;
+    display: block !important;
+    font-family: serif !important;
+    font-size: 30px !important;
+    letter-spacing: 15px !important;
+    color: #111 !important;
+    text-transform: uppercase !important;
 }
 
-/* Ẩn các thành phần rác để giữ sự sạch sẽ */
-#copyright a {
-    display: none !important; /* Chỉ hiện nội dung Curated của bạn */
+/* Ẩn triệt để các dòng text mặc định của Piwigo */
+#copyright .footer_content, 
+#copyright a, 
+#copyright br {
+    display: none !important;
 }
