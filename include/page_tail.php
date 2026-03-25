@@ -1,12 +1,15 @@
 <?php
 // +-----------------------------------------------------------------------+
-// | This file is part of Piwigo.                                          |
+// | File này là một phần của Piwigo.                                      |
 // |                                                                       |
-// | For copyright and license information, please view the COPYING.txt    |
-// | file that was distributed with this source code.                      |
+// | Để biết thông tin về bản quyền và giấy phép, vui lòng xem file        |
+// | COPYING.txt đi kèm với mã nguồn này.                                  |
 // +-----------------------------------------------------------------------+
+
+// Thiết lập file giao diện cho phần chân trang
 $template->set_filenames(array('tail'=>'footer.tpl'));
 
+// Kích hoạt hook bắt đầu xử lý chân trang
 trigger_notify('loc_begin_page_tail');
 
 $template->assign(
@@ -15,7 +18,7 @@ $template->assign(
     'PHPWG_URL' => defined('PHPWG_URL') ? str_replace('http:', 'https:', PHPWG_URL) : '',
     ));
 
-//--------------------------------------------------------------------- contact
+//--------------------------------------------------------- Thông tin liên hệ
 
 if (!is_a_guest())
 {
@@ -24,7 +27,7 @@ if (!is_a_guest())
     );
 }
 
-//--------------------------------------------------------- update notification
+//--------------------------------------------------------- Thông báo cập nhật
 if ($conf['update_notify_check_period'] > 0)
 {
   $check_for_updates = false;
@@ -55,9 +58,10 @@ if ($conf['update_notify_check_period'] > 0)
   }
 }
 
+// Gửi thông tin Piwigo tới template
 send_piwigo_infos();
 
-//------------------------------------------------------------- generation time
+//--------------------------------------------------------- Thời gian tạo trang
 $debug_vars = array();
 
 if ($conf['show_queries'])
@@ -83,7 +87,7 @@ if ($conf['show_gt'])
 
 $template->assign('debug', $debug_vars );
 
-//------------------------------------------------------------- mobile version
+//--------------------------------------------------------- Phiên bản di động
 if ( !empty($conf['mobile_theme']) && (get_device() != 'desktop' || mobile_theme()))
 {
   $template->assign('TOGGLE_MOBILE_THEME_URL',
@@ -94,10 +98,88 @@ if ( !empty($conf['mobile_theme']) && (get_device() != 'desktop' || mobile_theme
     );
 }
 
+// Kích hoạt hook kết thúc xử lý chân trang
 trigger_notify('loc_end_page_tail');
-//
-// Generate the page
-//
+
+// Xử lý và in trang ra trình duyệt
 $template->parse('tail');
 $template->p();
+
+// =========================================================================
+// CHÈN CODE LAVENDER PRIME TẠI ĐÂY (DƯỚI CÙNG ĐỂ ĐÈ LÊN MỌI THỨ CŨ)
+// =========================================================================
+echo '
+<style>
+  /* Xóa bỏ hoàn toàn dấu vết chân trang mặc định */
+  #copyright, .footer, footer, #footer, .footer_content { 
+    display: none !important; 
+    height: 0 !important; 
+    visibility: hidden !important;
+  }
+
+  /* Thiết kế Footer Bảo tàng cho Lavender Prime */
+  #lavender-museum-footer {
+    width: 100vw !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: #ffffff !important;
+    border-top: 1px solid #f2f2f2 !important;
+    padding: 120px 0 !important;
+    text-align: center !important;
+    z-index: 9999 !important;
+    margin-top: 40px !important;
+    display: block !important;
+    box-sizing: border-box !important;
+  }
+
+  #lavender-museum-footer .nav-museum {
+    margin-bottom: 50px !important;
+  }
+
+  #lavender-museum-footer a {
+    color: #888 !important;
+    text-decoration: none !important;
+    margin: 0 15px !important;
+    font-family: sans-serif !important;
+    font-size: 11px !important;
+    letter-spacing: 3px !important;
+    transition: 0.3s !important;
+  }
+
+  #lavender-museum-footer a:hover { color: #000 !important; }
+
+  #lavender-museum-footer h2 {
+    font-family: serif !important;
+    font-size: 35px !important;
+    letter-spacing: 15px !important;
+    color: #111 !important;
+    font-weight: 200 !important;
+    text-transform: uppercase !important;
+    margin: 20px 0 !important;
+    border: none !important;
+  }
+
+  #lavender-museum-footer p {
+    font-size: 10px !important;
+    letter-spacing: 6px !important;
+    color: #bbb !important;
+    text-transform: uppercase !important;
+    font-family: sans-serif !important;
+  }
+</style>
+
+<footer id="lavender-museum-footer">
+    <div class="nav-museum">
+        <a href="index.php">ALBUMS</a> • 
+        <a href="index.php?/recent_pics">LATEST</a> • 
+        <a href="index.php?/most_visited">POPULAR</a> • 
+        <a href="index.php?/tags">TAGS</a>
+    </div>
+    <h2>LAVENDER PRIME</h2>
+    <p>EST. 2026 | FINE ART DIGITAL GALLERY</p>
+</footer>
+';
+// =========================================================================
+
 ?>
