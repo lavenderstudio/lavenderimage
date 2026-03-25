@@ -441,3 +441,75 @@ $template->pparse('index');
 pwg_log();
 include(PHPWG_ROOT_PATH.'include/page_tail.php');
 ?>
+
+<?php
+// --- ĐOẠN MÃ LAVENDER PRIME: CHÈN CUỐI ĐỂ DỄ NÂNG CẤP ---
+// Kỹ thuật này sẽ tìm và thay thế nội dung ngay khi trang web chuẩn bị xuất xưởng
+
+$footer_html = '
+<style>
+  /* 1. Xóa dấu vết cũ */
+  #copyright, .footer, footer, #footer, .footer_content { display: none !important; opacity: 0; height: 0; }
+
+  /* 2. Giao diện Lavender Prime Bảo tàng */
+  #lavender-prime-footer {
+    width: 100vw !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: #ffffff !important;
+    border-top: 1px solid #eeeeee !important;
+    padding: 100px 0 !important;
+    text-align: center !important;
+    z-index: 9999 !important;
+    display: block !important;
+    clear: both !important;
+    margin-top: 60px !important;
+  }
+  .lavender-links { margin-bottom: 40px; }
+  .lavender-links a { 
+    color: #999 !important; 
+    text-decoration: none !important; 
+    margin: 0 18px !important; 
+    font-size: 11px !important; 
+    letter-spacing: 3px !important; 
+    font-family: sans-serif !important;
+    transition: 0.3s;
+  }
+  .lavender-links a:hover { color: #000 !important; }
+  .lavender-title { 
+    font-family: serif !important; 
+    font-size: clamp(28px, 5vw, 38px) !important; 
+    letter-spacing: 16px !important; 
+    color: #111 !important; 
+    text-transform: uppercase !important; 
+    font-weight: 200 !important;
+    margin: 20px 0 !important;
+  }
+  .lavender-subtitle { 
+    font-size: 10px !important; 
+    letter-spacing: 6px !important; 
+    color: #bbb !important; 
+    text-transform: uppercase !important; 
+    font-family: sans-serif !important;
+  }
+</style>
+
+<footer id="lavender-prime-footer">
+    <div class="lavender-links">
+        <a href="index.php">ALBUMS</a> • 
+        <a href="index.php?/recent_pics">LATEST</a> • 
+        <a href="index.php?/most_visited">POPULAR</a> • 
+        <a href="index.php?/tags">TAGS</a>
+    </div>
+    <div class="lavender-title">LAVENDER PRIME</div>
+    <div class="lavender-subtitle">EST. 2026 | FINE ART DIGITAL GALLERY</div>
+</footer>';
+
+// Sử dụng JavaScript để chèn vào cuối Body mà không làm hỏng cấu trúc PHP
+echo '<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.body.insertAdjacentHTML("beforeend", `' . str_replace(array("\r", "\n"), '', $footer_html) . '`);
+    });
+</script>';
+?>
