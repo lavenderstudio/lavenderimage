@@ -442,7 +442,6 @@ pwg_log();
 include(PHPWG_ROOT_PATH.'include/page_tail.php');
 ?>
 
-<?php
 /* --- LAVENDER PRIME: AUTO-INJECTION FOOTER --- */
 echo '
 <script>
