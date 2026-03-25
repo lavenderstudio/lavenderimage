@@ -101,3 +101,48 @@ trigger_notify('loc_end_page_tail');
 $template->parse('tail');
 $template->p();
 ?>
+
+/* --- LAVENDER PRIME: ULTIMATE CLEANUP --- */
+echo '<script>
+(function() {
+    function cleanLavender() {
+        // 1. Danh sách các "kẻ thù" cần tiêu diệt
+        const targets = [
+            ".pageregenerated", 
+            "#copyright", 
+            "#debug", 
+            ".footer", 
+            "footer",
+            ".text-center.padding-bottom"
+        ];
+        
+        targets.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                el.style.display = "none";
+                el.remove();
+            });
+        });
+
+        // 2. Quét diện rộng theo nội dung chữ (phòng hờ theme đổi ID)
+        const allDivs = document.getElementsByTagName("div");
+        for (let div of allDivs) {
+            if (div.textContent.includes("Page generated in") || 
+                div.textContent.includes("Sản phẩm của Piwigo") || 
+                div.textContent.includes("17.0.0beta1")) {
+                div.style.display = "none";
+                div.innerHTML = "";
+            }
+        }
+    }
+
+    // Chạy ngay lập tức và chạy lại sau 1 giây để diệt tận gốc các mã nạp chậm
+    cleanLavender();
+    setTimeout(cleanLavender, 1000);
+    window.onload = cleanLavender;
+})();
+</script>
+<style>
+    /* Chốt chặn CSS cuối cùng */
+    .pageregenerated, #copyright, #debug { display: none !important; visibility: hidden !important; opacity: 0 !important; }
+</style>';
+/* --- END LAVENDER PRIME --- */
