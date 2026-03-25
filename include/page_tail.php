@@ -101,23 +101,27 @@ if ( !empty($conf['mobile_theme']) && (get_device() != 'desktop' || mobile_theme
 // Kích hoạt hook kết thúc xử lý chân trang
 trigger_notify('loc_end_page_tail');
 
-// Xử lý và in trang ra trình duyệt
+// --- XỬ LÝ ĐỘC QUYỀN CHO LAVENDER PRIME ---
+// Sử dụng bộ đệm để bắt lấy nội dung cũ và chèn Footer mới vào sau cùng
 $template->parse('tail');
-$template->p();
 
-// =========================================================================
-// CHÈN CODE LAVENDER PRIME TẠI ĐÂY (DƯỚI CÙNG ĐỂ ĐÈ LÊN MỌI THỨ CŨ)
-// =========================================================================
+ob_start();
+$template->p();
+$content = ob_get_clean();
+
+echo $content;
+
 echo '
 <style>
   /* Xóa bỏ hoàn toàn dấu vết chân trang mặc định */
   #copyright, .footer, footer, #footer, .footer_content { 
     display: none !important; 
     height: 0 !important; 
+    opacity: 0 !important;
     visibility: hidden !important;
   }
 
-  /* Thiết kế Footer Bảo tàng cho Lavender Prime */
+  /* Thiết kế Footer Bảo tàng Tràn viền */
   #lavender-museum-footer {
     width: 100vw !important;
     position: relative !important;
@@ -131,6 +135,7 @@ echo '
     margin-top: 40px !important;
     display: block !important;
     box-sizing: border-box !important;
+    clear: both !important;
   }
 
   #lavender-museum-footer .nav-museum {
@@ -151,7 +156,7 @@ echo '
 
   #lavender-museum-footer h2 {
     font-family: serif !important;
-    font-size: 35px !important;
+    font-size: clamp(24px, 5vw, 35px) !important;
     letter-spacing: 15px !important;
     color: #111 !important;
     font-weight: 200 !important;
@@ -180,6 +185,6 @@ echo '
     <p>EST. 2026 | FINE ART DIGITAL GALLERY</p>
 </footer>
 ';
-// =========================================================================
+// --- KẾT THÚC XỬ LÝ LAVENDER PRIME ---
 
 ?>
