@@ -101,3 +101,50 @@ $template->parse('header');
 
 trigger_notify('loc_after_page_header');
 ?>
+
+// Lavender Prime Museum Footer Injection
+echo '
+<style>
+  /* Ép tràn viền và phong cách Bảo tàng */
+  #museum-footer-custom {
+    width: 100vw !important;
+    position: relative !important;
+    left: 50% !important;
+    right: 50% !important;
+    margin-left: -50vw !important;
+    margin-right: -50vw !important;
+    background: #ffffff !important;
+    border-top: 1px solid #eee !important;
+    padding: 100px 0 !important;
+    text-align: center !important;
+    z-index: 9999 !important;
+    clear: both !important;
+    display: block !important;
+  }
+  /* Ẩn footer mặc định của Piwigo */
+  #copyright, .footer, footer, #footer { display: none !important; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var footerHTML = `
+    <footer id="museum-footer-custom">
+        <div style="margin-bottom: 40px; letter-spacing: 4px; font-size: 11px; color: #888; font-family: sans-serif;">
+            <a href="index.php" style="color: #888; text-decoration: none; margin: 0 15px;">COLLECTIONS</a> • 
+            <a href="index.php?/recent_pics" style="color: #888; text-decoration: none; margin: 0 15px;">LATEST</a> • 
+            <a href="index.php?/most_visited" style="color: #888; text-decoration: none; margin: 0 15px;">POPULAR</a> • 
+            <a href="index.php?/tags" style="color: #888; text-decoration: none; margin: 0 15px;">ABOUT</a>
+        </div>
+        <h2 style="font-family: serif; font-size: clamp(24px, 5vw, 35px); letter-spacing: 15px; color: #111; font-weight: 200; text-transform: uppercase; margin: 20px 0;">
+            LAVENDER PRIME
+        </h2>
+        <p style="font-size: 10px; letter-spacing: 6px; color: #aaa; text-transform: uppercase; margin-top: 20px; font-family: sans-serif;">
+            EST. 2026 | FINE ART DIGITAL GALLERY
+        </p>
+    </footer>`;
+    
+    // Chèn vào cuối thẻ body
+    document.body.insertAdjacentHTML("beforeend", footerHTML);
+});
+</script>
+';
