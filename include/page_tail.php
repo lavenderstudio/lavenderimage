@@ -102,28 +102,19 @@ $template->parse('tail');
 $template->p();
 ?>
 
-/* --- LAVENDER PRIME: ULTIMATE CLEANUP --- */
-echo '<script>
+<?php
+/* --- GIỮ NGUYÊN NỘI DUNG GỐC CỦA FILE Ở ĐÂY (NẾU CÓ) --- */
+
+// --- ĐOẠN MÃ LAVENDER PRIME: CHÈN VÀO TRƯỚC KHI KẾT THÚC ---
+echo '
+<script>
 (function() {
     function cleanLavender() {
-        // 1. Danh sách các "kẻ thù" cần tiêu diệt
-        const targets = [
-            ".pageregenerated", 
-            "#copyright", 
-            "#debug", 
-            ".footer", 
-            "footer",
-            ".text-center.padding-bottom"
-        ];
-        
+        const targets = [".pageregenerated", "#copyright", "#debug", ".footer", "footer", ".text-center.padding-bottom"];
         targets.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                el.style.display = "none";
-                el.remove();
-            });
+            document.querySelectorAll(selector).forEach(el => { el.remove(); });
         });
 
-        // 2. Quét diện rộng theo nội dung chữ (phòng hờ theme đổi ID)
         const allDivs = document.getElementsByTagName("div");
         for (let div of allDivs) {
             if (div.textContent.includes("Page generated in") || 
@@ -134,15 +125,15 @@ echo '<script>
             }
         }
     }
-
-    // Chạy ngay lập tức và chạy lại sau 1 giây để diệt tận gốc các mã nạp chậm
     cleanLavender();
     setTimeout(cleanLavender, 1000);
     window.onload = cleanLavender;
 })();
 </script>
 <style>
-    /* Chốt chặn CSS cuối cùng */
-    .pageregenerated, #copyright, #debug { display: none !important; visibility: hidden !important; opacity: 0 !important; }
-</style>';
-/* --- END LAVENDER PRIME --- */
+    /* Chặn CSS ngay lập tức để không bị giật hình */
+    .pageregenerated, #copyright, #debug, .footer { display: none !important; opacity: 0 !important; }
+</style>
+';
+/* --- KẾT THÚC LAVENDER PRIME --- */
+?>
