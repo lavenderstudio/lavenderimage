@@ -10,9 +10,9 @@ global $conf, $prefixeTable;
 $access_key = 'eTnF2DNNuK7_upLuyES_cs760QU4rxlTuqoaYm8mSI0';
 $album_name = 'Abstract Ether'; 
 $keyword = 'abstract-dark-purple-gold'; 
-$total_pages = 5; // Thử nghiệm 150 ảnh
+$total_pages = 5; 
 
-echo "<h2>Lavender Prime - Khởi tạo quy trình nạp dữ liệu sạch...</h2>";
+echo "<h2>Lavender Prime - Khởi tạo quy trình nạp dữ liệu trực tiếp...</h2>";
 
 // 3. Tự tạo kết nối Database (Bỏ qua hàm pwg_query đang lỗi)
 $conn = new mysqli($conf['db_host'], $conf['db_user'], $conf['db_password'], $conf['db_base']);
@@ -22,7 +22,7 @@ if ($conn->connect_error) {
 }
 $conn->set_charset("utf8");
 
-// 4. Kiểm tra hoặc Tạo Album (Sử dụng kết nối $conn trực tiếp)
+// 4. Kiểm tra hoặc Tạo Album
 $sql_cat = "SELECT id FROM {$prefixeTable}categories WHERE name = '" . $conn->real_escape_string($album_name) . "' LIMIT 1";
 $res_cat = $conn->query($sql_cat);
 $row_cat = $res_cat->fetch_assoc();
@@ -52,25 +52,25 @@ for ($page = 1; $page <= $total_pages; $page++) {
         // Kiểm tra ảnh đã tồn tại chưa
         $check = $conn->query("SELECT id FROM {$prefixeTable}images WHERE file = '$file_id'");
         if ($check->num_rows == 0) {
-            $name = $conn->real_escape_string($img['alt_description'] ?: 'Abstract Art');
+            $name = $conn->real_escape_string($img['alt_description'] ?: 'Abstract Art Piece');
             $path = $img['urls']['regular'];
             $raw_url = $img['urls']['raw'];
 
-            // Chèn vào bảng ảnh (Lưu link RAW vào comment để in 60x60 sau này)
+            // Chèn vào bảng ảnh (Lưu link RAW vào comment để truy xuất in 60x60 sau này)
             $sql_img = "INSERT INTO {$prefixeTable}images (file, path, name, author, width, height, comment, date_available) 
                         VALUES ('$file_id', '$path', '$name', 'Unsplash', {$img['width']}, {$img['height']}, '$raw_url', NOW())";
             
             if ($conn->query($sql_img)) {
                 $new_id = $conn->insert_id;
-                // Gắn ảnh vào Album tương ứng
+                // Gắn ảnh vào Album
                 $conn->query("INSERT INTO {$prefixeTable}image_category (image_id, category_id) VALUES ($new_id, $category_id)");
-                echo "Đã nạp thành công: $file_id <br>";
+                echo "Đã nạp: " . $file_id . "<br>";
             }
         }
     }
     echo "<b>--- Hoàn tất trang $page ---</b><br>";
     flush(); 
-    sleep(1); // Tránh bị Unsplash giới hạn tần suất
+    sleep(1); 
 }
 
 $conn->close();
