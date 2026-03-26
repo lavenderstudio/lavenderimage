@@ -1,62 +1,83 @@
 <?php
+// 1. Khởi tạo môi trường Piwigo chuẩn
 define('PHPWG_ROOT_PATH', './');
 include_once(PHPWG_ROOT_PATH . 'include/common.inc.php');
 
-// Cấu hình từ Founder
+// Ngắt session để tránh lỗi ghi đè khi import số lượng lớn
+session_write_close();
+
+// 2. Cấu hình Access Key của Founder
 $access_key = 'eTnF2DNNuK7_upLuyES_cs760QU4rxlTuqoaYm8mSI0';
-$album_name = 'Abstract Ether'; // Tên Album trừu tượng
-$keyword = 'abstract-dark-purple-gold'; // Từ khóa thương mại cho Lavender Prime
-$per_page = 1; // Số ảnh mỗi lượt gọi
-$total_pages = 2; // Tổng 150 ảnh cho lần thử nghiệm đầu
+$album_name = 'Abstract Ether'; 
+$keyword = 'abstract-dark-purple-gold'; 
+$total_pages = 5; // Nhập 150 ảnh thử nghiệm
 
-echo "<h2>Lavender Prime - Đang khởi tạo Album ảo...</h2>";
+echo "<h2>Lavender Prime - Đang đồng bộ Album ảo...</h2>";
 
-// 1. Tạo hoặc lấy ID của Album
-$query = "SELECT id FROM " . $prefixeTable . "categories WHERE name = '" . $album_name . "' LIMIT 1";
+// 3. Logic lấy hoặc tạo Album (Sử dụng hàm chuẩn để tránh lỗi SQL)
+$category_id = null;
+$query = 'SELECT id FROM '.CATEGORIES_TABLE.' WHERE name = "'.pwg_db_real_escape_string($album_name).'" LIMIT 1;';
 $result = pwg_query($query);
-$row = pwg_db_fetch_assoc($result);
 
-if (!$row) {
-    pwg_query("INSERT INTO " . $prefixeTable . "categories (name, permalink) VALUES ('$album_name', 'abstract-ether')");
-    $category_id = pwg_db_insert_id();
-    echo "Đã tạo Album mới ID: $category_id <br>";
-} else {
+if ($row = pwg_db_fetch_assoc($result)) {
     $category_id = $row['id'];
-    echo "Sử dụng Album cũ ID: $category_id <br>";
+    echo "Sử dụng Album hiện có ID: $category_id <br>";
+} else {
+    // Tạo Album mới nếu chưa có
+    $insert_cat = array('name' => $album_name, 'permalink' => 'abstract-ether');
+    $category_id = create_category($album_name); // Dùng hàm nội bộ của Piwigo
+    echo "Đã khởi tạo Album mới thành công. <br>";
 }
 
-// 2. Vòng lặp lấy dữ liệu từ Unsplash
+// 4. Vòng lặp lấy dữ liệu từ Unsplash
 for ($page = 1; $page <= $total_pages; $page++) {
-    $url = "https://api.unsplash.com/search/photos?client_id=$access_key&query=$keyword&page=$page&per_page=$per_page&orientation=squarish";
+    $url = "https://api.unsplash.com/search/photos?client_id=$access_key&query=".urlencode($keyword)."&page=$page&per_page=30&orientation=squarish";
     
-    $response = file_get_contents($url);
-    $data = json_decode($response, true);
+    $ctx = stream_context_create(array('http' => array('timeout' => 15)));
+    $response = @file_get_contents($url, false, $ctx);
+    
+    if (!$response) {
+        echo "<b style='color:red;'>Lỗi: Không thể kết nối tới Unsplash API tại trang $page.</b><br>";
+        break;
+    }
 
+    $data = json_decode($response, true);
     if (empty($data['results'])) break;
 
     foreach ($data['results'] as $img) {
         $file_id = 'unsplash_' . $img['id'];
-        $path = $img['urls']['regular']; // Dùng ảnh Regular cho Web
-        $raw_url = $img['urls']['raw']; // Lưu link gốc để in ấn sau này
-        $name = pwg_db_real_escape_string($img['alt_description'] ?: 'Abstract Piece');
+        
+        // Kiểm tra xem ảnh đã tồn tại trong database chưa
+        $check_query = 'SELECT id FROM '.IMAGES_TABLE.' WHERE file = "'.$file_id.'" LIMIT 1;';
+        $check_res = pwg_query($check_query);
+        
+        if (pwg_db_num_rows($check_res) == 0) {
+            // Chuẩn bị dữ liệu ảnh
+            $insert_data = array(
+                'file' => $file_id,
+                'path' => $img['urls']['regular'], // Link hiển thị Web
+                'name' => pwg_db_real_escape_string($img['alt_description'] ?: 'Abstract Art'),
+                'author' => 'Unsplash',
+                'width' => $img['width'],
+                'height' => $img['height'],
+                'comment' => $img['urls']['raw'], // Lưu link GỐC để in 60x60
+                'date_available' => CURRENT_DATE
+            );
 
-        // Kiểm tra trùng lặp
-        $check = pwg_query("SELECT id FROM " . $prefixeTable . "images WHERE file = '$file_id'");
-        if (pwg_db_num_rows($check) == 0) {
-            // Chèn vào bảng ảnh (Trick: Lưu link Unsplash vào trường path)
-            $sql = "INSERT INTO " . $prefixeTable . "images (file, path, name, author, width, height, comment) 
-                    VALUES ('$file_id', '$path', '$name', 'Unsplash', {$img['width']}, {$img['height']}, '$raw_url')";
-            pwg_query($sql);
-            $image_id = pwg_db_insert_id();
+            mass_inserts(IMAGES_TABLE, array_keys($insert_data), array(array_values($insert_data)));
+            $new_image_id = pwg_db_insert_id();
 
-            // Gắn vào Album
-            pwg_query("INSERT INTO " . $prefixeTable . "image_category (image_id, category_id) VALUES ($image_id, $category_id)");
-            echo "Successfully added: $file_id <br>";
+            // Gắn ảnh vào Album
+            $assoc_data = array('image_id' => $new_image_id, 'category_id' => $category_id);
+            mass_inserts(IMAGE_CATEGORY_TABLE, array_keys($assoc_data), array(array_values($assoc_data)));
+            
+            echo "Đã nạp: " . $file_id . " - " . $img['user']['name'] . "<br>";
         }
     }
-    echo "--- Hoàn thành trang $page ---<br>";
-    flush(); // Đẩy dữ liệu ra màn hình ngay lập tức
+    echo "<b>--- Hoàn tất trang $page ---</b><br>";
+    flush(); 
+    sleep(1); // Tránh bị Unsplash chặn
 }
 
-echo "<h3>Hoàn tất thử nghiệm. Founder hãy vào trang quản trị Piwigo để kiểm tra Album '$album_name'.</h3>";
+echo "<h3>Đã đồng bộ xong 150 ảnh trừu tượng vào Lavender Prime.</h3>";
 ?>
