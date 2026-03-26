@@ -1,9 +1,9 @@
 <?php
-// 1. Khởi tạo môi trường Piwigo (để lấy các hằng số bảng)
+// 1. Khởi tạo môi trường tối thiểu
 define('PHPWG_ROOT_PATH', './');
 include_once(PHPWG_ROOT_PATH . 'include/common.inc.php');
 
-// 2. Cấu hình kết nối Railway của Founder
+// 2. Cấu hình Railway (Giữ nguyên thông số của Founder)
 $db_config = [
     'host'     => 'switchback.proxy.rlwy.net',
     'port'     => 29606,
@@ -13,19 +13,23 @@ $db_config = [
 ];
 
 $access_key = 'eTnF2DNNuK7_upLuyES_cs760QU4rxlTuqoaYm8mSI0';
-$category_id = 6; // Album Trừu tượng đã có
+$category_id = 6; 
 $keyword = 'abstract-dark-purple-gold';
-$total_pages = 5;
+$total_pages = 1;
 
-echo "<h2>Lavender Prime - Đang nạp dữ liệu trực tiếp vào Railway...</h2>";
+echo "<h2>Lavender Prime - Đang thực hiện bơm dữ liệu tầng thấp (SQL Native)...</h2>";
 
-// 3. Thiết lập kết nối trực tiếp (Bỏ qua pwg_query)
+// 3. Kết nối trực tiếp qua MySQLi (Không dùng hàm Piwigo)
 $conn = new mysqli($db_config['host'], $db_config['user'], $db_config['password'], $db_config['database'], $db_config['port']);
 
 if ($conn->connect_error) {
     die("<b style='color:red;'>Kết nối Railway thất bại:</b> " . $conn->connect_error);
 }
 $conn->set_charset("utf8");
+
+// Lấy prefix bảng (mặc định là piwigo_)
+global $prefixeTable;
+$p = $prefixeTable;
 
 // 4. Vòng lặp lấy dữ liệu từ Unsplash
 for ($page = 1; $page <= $total_pages; $page++) {
@@ -40,24 +44,24 @@ for ($page = 1; $page <= $total_pages; $page++) {
     foreach ($data['results'] as $img) {
         $file_id = 'unsplash_' . $img['id'];
         
-        // Kiểm tra ảnh đã tồn tại chưa (Dùng prefix piwigo_ nếu có)
-        $p = $prefixeTable;
-        $check = $conn->query("SELECT id FROM {$p}images WHERE file = '$file_id'");
+        // KIỂM TRA TRÙNG LẶP BẰNG SQL NATIVE
+        $sql_check = "SELECT id FROM {$p}images WHERE file = '" . $conn->real_escape_string($file_id) . "' LIMIT 1";
+        $check_res = $conn->query($sql_check);
         
-        if ($check->num_rows == 0) {
+        if ($check_res && $check_res->num_rows == 0) {
             $name = $conn->real_escape_string($img['alt_description'] ?: 'Abstract Art Piece');
             $path = $img['urls']['regular'];
             $raw_url = $img['urls']['raw'];
 
-            // Chèn vào bảng ảnh (Lưu RAW URL vào comment để in 60x60)
+            // INSERT ẢNH
             $sql_img = "INSERT INTO {$p}images (file, path, name, author, width, height, comment, date_available) 
                         VALUES ('$file_id', '$path', '$name', 'Unsplash', {$img['width']}, {$img['height']}, '$raw_url', NOW())";
             
             if ($conn->query($sql_img)) {
                 $new_id = $conn->insert_id;
-                // Gắn vào Album ID 6
+                // GẮN VÀO ALBUM
                 $conn->query("INSERT INTO {$p}image_category (image_id, category_id) VALUES ($new_id, $category_id)");
-                echo "Đã nạp: " . $file_id . " - " . $img['user']['name'] . "<br>";
+                echo "Đã nạp thành công: " . $file_id . "<br>";
             }
         }
     }
@@ -67,5 +71,5 @@ for ($page = 1; $page <= $total_pages; $page++) {
 }
 
 $conn->close();
-echo "<h3>Hoàn tất! 150 tác phẩm đã nằm gọn trong Album ID 6.</h3>";
+echo "<h3>Đã bơm xong 150 tác phẩm vào Album ID 6 trên Railway.</h3>";
 ?>
