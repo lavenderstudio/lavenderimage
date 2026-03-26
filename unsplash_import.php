@@ -1,10 +1,10 @@
 <?php
 /**
  * LAVENDER PRIME - ULTIMATE UNSPLASH INJECTOR (v6.0)
- * Giải pháp: Kết nối trực tiếp Railway, không thông qua nhân Piwigo để tránh lỗi Scalar.
+ * Giải pháp: Kết nối trực tiếp Railway, không gọi hàm Piwigo để triệt tiêu lỗi Fatal.
  */
 
-// 1. Cấu hình Database Railway của Founder
+// 1. Cấu hình Database Railway (Thông số từ Founder)
 $db_config = [
     'host'     => 'switchback.proxy.rlwy.net',
     'port'     => 29606,
@@ -15,22 +15,22 @@ $db_config = [
 
 // 2. Cấu hình Unsplash & Album
 $access_key  = 'eTnF2DNNuK7_upLuyES_cs760QU4rxlTuqoaYm8mSI0';
-$category_id = 6; // Album Trừu tượng của Founder
+$category_id = 6; 
 $keyword     = 'abstract-dark-purple-gold';
 $total_pages = 5; 
 $prefix      = 'piwigo_'; // Prefix mặc định của Piwigo
 
-echo "<h2>Lavender Prime - Đang bơm 150 tuyệt phẩm vào Album ID 6...</h2>";
+echo "<h2 style='color:#521da8;'>Lavender Prime - Đang bơm 150 tuyệt phẩm vào Album ID 6...</h2>";
 
-// 3. Khởi tạo kết nối thuần MySQLi
+// 3. Khởi tạo kết nối thuần MySQLi (Không thông qua Piwigo Core)
 $conn = new mysqli($db_config['host'], $db_config['user'], $db_config['password'], $db_config['database'], $db_config['port']);
 
 if ($conn->connect_error) {
-    die("<b style='color:red;'>Kết nối Railway thất bại:</b> " . $conn->connect_error);
+    die("<b style='color:red;'>Kết kết nối thất bại:</b> " . $conn->connect_error);
 }
 $conn->set_charset("utf8");
 
-// 4. Vòng lặp lấy dữ liệu và Insert trực tiếp
+// 4. Vòng lặp lấy dữ liệu và Bơm trực tiếp
 for ($page = 1; $page <= $total_pages; $page++) {
     $url = "https://api.unsplash.com/search/photos?client_id=$access_key&query=".urlencode($keyword)."&page=$page&per_page=30&orientation=squarish";
     
@@ -46,7 +46,7 @@ for ($page = 1; $page <= $total_pages; $page++) {
     foreach ($data['results'] as $img) {
         $file_id = 'unsplash_' . $img['id'];
         
-        // Kiểm tra trùng bằng SQL thuần (Bypass hoàn toàn Piwigo Core)
+        // Kiểm tra trùng bằng SQL Native
         $check = $conn->query("SELECT id FROM {$prefix}images WHERE file = '$file_id' LIMIT 1");
         
         if ($check && $check->num_rows == 0) {
@@ -62,7 +62,7 @@ for ($page = 1; $page <= $total_pages; $page++) {
                 $new_id = $conn->insert_id;
                 // GẮN VÀO ALBUM 6
                 $conn->query("INSERT INTO {$prefix}image_category (image_id, category_id) VALUES ($new_id, $category_id)");
-                echo "Đã nạp: <span style='color:#521da8;'>$file_id</span> - Done.<br>";
+                echo "Đã nạp thành công: <span style='color:#d4af37;'>$file_id</span><br>";
             }
         }
     }
@@ -72,5 +72,5 @@ for ($page = 1; $page <= $total_pages; $page++) {
 }
 
 $conn->close();
-echo "<h3>Thành công! Founder hãy vào lại Album 6 để chiêm ngưỡng.</h3>";
+echo "<h3 style='color:green;'>Thành công! 150 ảnh đã nằm trong Database.</h3>";
 ?>
