@@ -1,7 +1,7 @@
 <?php
 /**
- * LAVENDER PRIME - REPAIR & SYNC TOOL (v9.0)
- * Dọn dẹp lỗi Deprecated và đồng bộ hóa Album 6.
+ * LAVENDER PRIME - PURE STREAMER (v11.0)
+ * Nạp ảnh trực tiếp từ Pexels - Hiển thị ngay lập tức - Không tốn dung lượng.
  */
 
 $db_config = [
@@ -12,36 +12,51 @@ $db_config = [
     'database' => 'railway'
 ];
 
-$prefix = 'piwigo_'; 
-
-echo "<h2>Lavender Prime - Đang dọn dẹp dữ liệu rác...</h2>";
+$pexels_key  = 'PIc1dqABqUbwsTNkgpogI250lrXMgVh1W9BXpjIgxKs7MJKiQDASbUXK';
+$category_id = 6; 
+$keyword     = 'abstract dark purple gold'; 
+$total_pages = 3; // Nạp trước 90 ảnh cực phẩm
+$prefix      = 'piwigo_'; 
 
 $conn = new mysqli($db_config['host'], $db_config['user'], $db_config['password'], $db_config['database'], $db_config['port']);
-if ($conn->connect_error) die("Kết nối thất bại.");
+$conn->set_charset("utf8");
 
-// BƯỚC 1: Sửa lỗi Album (Cập nhật Global Rank và Status để hết lỗi substr_count)
-$sql_fix_cat = "UPDATE {$prefix}categories 
-                SET global_rank = '1', 
-                    status = 'public', 
-                    visible = 'true', 
-                    uppercats = '1' 
-                WHERE id = 6";
-$conn->query($sql_fix_cat);
+echo "<h2>Lavender Prime - Đang khởi tạo dòng chảy nghệ thuật...</h2>";
 
-// BƯỚC 2: Xóa các ảnh lỗi "0.00MB" (Ảnh chỉ có link URL mà không có file vật lý)
-// Chúng ta sẽ xóa để nạp lại bản Hybrid sạch hơn ở bước sau.
-$sql_clean = "DELETE FROM {$prefix}images WHERE path LIKE 'https://%'";
-$conn->query($sql_clean);
+for ($page = 1; $page <= $total_pages; $page++) {
+    $url = "https://api.pexels.com/v1/search?query=".urlencode($keyword)."&per_page=30&page=$page";
+    $opts = ["http" => ["header" => "Authorization: $pexels_key\r\n"]];
+    $context = stream_context_create($opts);
+    $data = json_decode(file_get_contents($url, false, $context), true);
 
-// BƯỚC 3: Đồng bộ lại số lượng ảnh hiển thị trong Album
-$sql_sync = "UPDATE {$prefix}categories c 
-             SET nb_images = (SELECT COUNT(*) FROM {$prefix}image_category ic WHERE ic.category_id = c.id)";
-$conn->query($sql_sync);
+    if (empty($data['photos'])) break;
 
-echo "<h3>1. Đã sửa cấu trúc Album ID 6 (Hết lỗi Deprecated).</h3>";
-echo "<h3>2. Đã dọn dẹp ảnh ảo gây lỗi hiển thị.</h3>";
-echo "<h3>3. Đã đồng bộ bộ đếm ảnh.</h3>";
+    foreach ($data['photos'] as $img) {
+        $file_id = 'px_' . $img['id'];
+        
+        // Lấy link ảnh chất lượng cao để hiển thị (large2x)
+        $display_url = $img['src']['large2x'];
+        $raw_url = $img['src']['original']; // Giữ lại để in 60x60cm
+
+        $name = $conn->real_escape_string($img['alt'] ?: 'Lavender Prime Abstract Art');
+
+        // Bơm thẳng vào Database - Ép tham số để Piwigo không quét Thumbnail nội bộ
+        $sql = "INSERT INTO {$prefix}images (file, path, name, author, width, height, comment, date_available, representative_ext) 
+                VALUES ('$file_id', '$display_url', '$name', 'Pexels', {$img['width']}, {$img['height']}, '$raw_url', NOW(), 'jpg')";
+        
+        if ($conn->query($sql)) {
+            $new_id = $conn->insert_id;
+            $conn->query("INSERT INTO {$prefix}image_category (image_id, category_id) VALUES ($new_id, $category_id)");
+            echo "Đã nạp: <span style='color:#d4af37;'>$file_id</span> - Thành công.<br>";
+        }
+    }
+    flush();
+    sleep(1);
+}
+
+// CẬP NHẬT CUỐI: Đồng bộ số lượng ảnh để Album hiện đúng
+$conn->query("UPDATE {$prefix}categories SET nb_images = (SELECT COUNT(*) FROM {$prefix}image_category WHERE category_id = 6) WHERE id = 6");
 
 $conn->close();
-echo "<b>Founder hãy F5 lại trang Lavender Prime. Mọi dòng lỗi sẽ biến mất!</b>";
+echo "<h3>Quy trình hoàn tất! Founder hãy F5 trang chủ Lavender Prime.</h3>";
 ?>
